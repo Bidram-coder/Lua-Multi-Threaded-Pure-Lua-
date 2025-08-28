@@ -1,4 +1,7 @@
 -- CThreads Module
+-- cthread.lua - Coroutine Threads in Pure Lua
+-- (c) 2025 Sibot
+-- Licensed under the MIT License
 local clock         = os.clock
 local insert        = table.insert
 local remove        = table.remove
