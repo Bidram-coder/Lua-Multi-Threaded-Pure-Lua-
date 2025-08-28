@@ -27,4 +27,4 @@ Unlike typical coroutine wrappers, cthread compiles each "thread" into a corouti
   Clean message-passing architecture
   Better debugging and logging potential
   A structured cooperative multitasking model
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+Licence : [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
