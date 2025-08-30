@@ -1,5 +1,5 @@
 # Lua-Multi-Threaded-Pure-Lua-
-cthread — short for coroutine threads — is a pure Lua cooperative multithreading system designed for high control, performance, and portability.
+cthread — short for coroutine threads is a pure Lua cooperative multithreading system designed for high control, performance, and portability.
 Unlike typical coroutine wrappers, cthread compiles each "thread" into a coroutine with its own sandboxed environment and injects a cooperative scheduler. Built-in functions such as print() are automatically wrapped to yield control, enabling multiple logical threads to execute in parallel without blocking one another.
 ✅ Key Features:
   Automatic Cooperative Yielding
