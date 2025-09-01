@@ -1,30 +1,49 @@
-# Lua-Multi-Threaded-Pure-Lua-
-cthread — short for coroutine threads is a pure Lua cooperative multithreading system designed for high control, performance, and portability.
-Unlike typical coroutine wrappers, cthread compiles each "thread" into a coroutine with its own sandboxed environment and injects a cooperative scheduler. Built-in functions such as print() are automatically wrapped to yield control, enabling multiple logical threads to execute in parallel without blocking one another.
-✅ Key Features:
-  Automatic Cooperative Yielding
-  Threads yield automatically after key operations like print() or wait(), allowing others to proceed.
-  Non-blocking Sleep
-  wait(t) suspends only the current thread without halting the entire system.
-  Safe Message Passing
-  Use send(thread, data) and collect(from, key) for isolated, deterministic communication.
-  Injectable Loop Rewriting
-  Optionally rewrite for loops to yield per iteration, enabling long loops to share execution time.
-  Custom Scheduler
-  The core scheduler ticks through all active threads, resuming only those ready to run.
-🔧 Design Notes:
-  Written in 100% pure Lua
-  No C modules, no OS threads, no FFI, no external dependencies
-  Compatible with constrained environments (e.g., Windows with no pipe/mmap support)
-🧠 Use Cases:
-  Sandboxed script environments
-  Virtual machine concurrency simulations
-  Teaching task scheduling and coroutine-based threading
-  Lightweight task schedulers for embedded or low-level Lua systems
-🔬 Background:
-  This system evolved from prior thread models I designed (LT, GTC, HGTC, HNGTC). Compared to those, cthread offers:
-  Faster and safer execution
-  Clean message-passing architecture
-  Better debugging and logging potential
-  A structured cooperative multitasking model
-Licence : [https://github.com/Bidram-coder/Lua-Multi-Threaded-Pure-Lua-/blob/main/LICENSE]
+# Lua-Multi-Threaded-Pure-Lua
+What Is Cthread?
+  cthread is a cooperative multithreading system written entirely in pure Lua.
+  It allows you to execute multiple logic threads concurrently using coroutines, automatic yielding, and sandboxed environments, without requiring any native
+  dependencies or external libraries.
+Why Use Cthread?
+  cthread gives you true cooperative multithreading in pure Lua — no C, no dependencies, and no hacks.
+  Unlike basic coroutine wrappers or while true do coroutine.yield() end tricks, cthread offers:
+  ⚙️ Structured Multitasking
+    Each thread runs inside its own sandboxed coroutine with controlled globals, reducing side effects and improving reliability.
+  🧵 Automatic Yielding
+    No need to manually sprinkle coroutine.yield() in your code. The system injects yield points automatically, even inside long loops or sequential logic.
+  ⏱ Non-blocking Sleep
+    Use sleep(1) (or wait(1)) without freezing your entire program. Only the current thread is paused; others continue running.
+  📡 Safe Communication
+    Built-in send() and collect() allow threads to exchange messages without shared memory or unsafe globals.
+  🔍 Debuggable and Deterministic
+    Execution order is controlled and predictable. This helps with debugging, simulation, and teaching scheduling logic.
+  🧬 Fully Portable
+    Runs anywhere Lua runs — no need for threads, shared memory, or platform-specific features. Works even on restricted systems (e.g. CC:Tweaked, Love2D sandbox, 
+    Windows CLI Lua).
+✅ Features : [[
+---- Automatic Yield Injection
+---- Code is automatically rewritten to insert sleep(0) after non-blocking instructions, enabling fairness across threads.
+---- Built-in Cooperative Functions
+---- Functions like print() and wait() are wrapped to yield, ensuring control returns to the scheduler without blocking other threads.
+---- Non-blocking wait(t)
+---- Delays only the current thread, allowing others to proceed.
+---- Message Passing
+---- Use send(thread, key, ...) and collect(from, key) for safe, isolated thread communication.
+---- Deterministic Scheduler
+---- Threads are resumed in order; only active threads are scheduled. No randomness or race conditions.
+]]
+🔧 Technical Notes : [[
+---- 💡 100% Pure Lua — No C modules, FFI, or OS threads
+---- 🧱 Self-contained — No dependencies; works in minimal or sandboxed environments
+---- 🔐 Safe Execution — Each thread runs in its own sandboxed environment with controlled globals
+---- ⚙️ Lightweight — Suitable for embedded systems, scripting engines, and constrained VMs
+]]
+🧠 Use Cases : [[
+---- Sandboxed scripting environments
+---- Teaching multitasking and coroutine scheduling
+---- Custom task schedulers in embedded systems
+---- Virtual machines or interpreters that need cooperative execution
+---- Lua-based automation, plugins, or simulations
+]]
+📝 License : MIT License : [https://github.com/Bidram-coder/Lua-Multi-Threaded-Pure-Lua-/blob/main/LICENSE]
+
+Created By @Bidram-Coder
