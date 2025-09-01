@@ -4,10 +4,12 @@
 -- Licensed under the MIT License
 local function coro(func)
   return function(...)
-    func(...)
+    local result = table.pack(func(...))
     coroutine.yield()
+    return table.unpack(result, 1, result.n)
   end
 end
+
 local cthread = {}
 cthread.list = {}
 cthread.queue = {}
@@ -15,24 +17,19 @@ cthread.sleeping = {}
 local function _trim(s)
   return (s:gsub("^%s+", ""):gsub("%s+$", ""))
 end
-
 local function _strip_comment(line)
   return (line:gsub("%-%-.*$", ""))
 end
-
 local function _is_blank_or_comment(line)
   local s = _trim(_strip_comment(line))
   return s == ""
 end
-
 local function _is_func_start(s)
   return s:match("^function%s") or s:match("^local%s+function%s") or s:match("=%s*function%s*%(")
 end
-
 local function _is_func_end(s)
   return s == "end"
 end
-
 local function _is_control_head(s)
   if s:match("^if%s") or s:match("^for%s") or s:match("^while%s") or s:match("^repeat%s*$") then
     return true
@@ -42,14 +39,12 @@ local function _is_control_head(s)
   end
   return false
 end
-
 local function _has_coronized_call(s)
   if s:find("%f[%w_]print%f[^%w_]") or s:find("%f[%w_]sleep%f[^%w_]") then
     return true
   end
   return false
 end
-
 local function _needs_injection(stmt)
   local s = _trim(_strip_comment(stmt))
   if s == "" then return false end
@@ -62,11 +57,9 @@ end
 local function inject_yields(code)
   local out = {}
   local in_func = false
-
   for rawline in (code.."\n"):gmatch("([^\r\n]*)\r?\n") do
     local line = rawline
     local s = _trim(_strip_comment(line))
-
     if _is_func_start(s) then
       table.insert(out, line)
       if not s:find("end%s*$") then in_func = true end
@@ -149,12 +142,12 @@ cthread.env = {
         exp       = coro(math.exp),
         floor     = coro(math.floor),
         fmod      = coro(math.fmod),
-        huge      = math.huge,
+        huge      =  "inf",
         log       = coro(math.log),
         max       = coro(math.max),
         min       = coro(math.min),
         modf      = coro(math.modf),
-        pi        = math.pi,
+        pi        =  3.14159265359,
         rad       = coro(math.rad),
         random    = coro(math.random),
         randomseed= coro(math.randomseed),
@@ -186,7 +179,6 @@ cthread.env = {
     },
     utf8 = {
         char        = coro(utf8.char),
-        charpattern = utf8.charpattern,
         codepoint   = coro(utf8.codepoint),
         codes       = coro(utf8.codes),
         len         = coro(utf8.len),
@@ -257,11 +249,6 @@ cthread.env = {
         searchers   = package.searchers,
         searchpath  = coro(package.searchpath),
     },
-  cthread = {
-    new = coro(cthread.new),
-    push = coro(cthread.push),
-    start = coro(cthread.start)
-  },
   sleep = coro(function(t)
     t = tonumber(t) or 0
     if t <= 0 then
@@ -277,18 +264,15 @@ cthread.env = {
     end
   end)
 }
-
 function cthread.new(name, code)
   local transformed = inject_yields(code)
   local chunk, err = load(transformed, name, "t", cthread.env)
   if not chunk then error("CThread Load Error '"..name.."': "..err) end
   cthread.list[name] = coroutine.create(chunk)
 end
-
 function cthread.push(name)
   cthread.queue[#cthread.queue+1] = name
 end
-
 function cthread.tick()
   local now = os.clock()
   for name, wake in pairs(cthread.sleeping) do
@@ -313,17 +297,13 @@ function cthread.tick()
     q[i] = nil
   end
 end
-
-
 function cthread.start()
   while #cthread.queue > 0 do
     cthread.tick()
   end
 end
-
 cthread.mail = cthread.mail or {}
-
-local _unpack = table.unpack or unpack
+local _unpack = table.unpack
 local function _current_thread_name()
   local this = coroutine.running()
   for name, co in pairs(cthread.list) do
@@ -362,31 +342,31 @@ cthread.env.collect = function(from, key)
   end
   return nil
 end
-local function cthread.used(func, ...)
+
+local function used(func, ...)
   collectgarbage("collect")
   local start = os.clock()
   local result = table.pack(func(...))
+  cthread.start()
   local finish = os.clock()
-  result.cpu = tonumber(("%.3f"):format(finish - start)) 
+  result.cpu = tonumber(("%.4f"):format(finish - start))
   return result
 end
--- Built-In Example, Can be removed
+cthread.env["cthread"] = {}
+cthread.env.cthread["push"] = coro(cthread.push)
+cthread.env.cthread["new"] = coro(cthread.new)
+cthread.env.cthread["start"] = coro(cthread.start)
+-- Example
 local res = used(function()
-cthread.new("ping", [[
-    local sim = 234567890
-    for i=1,10e3 do 
-      sim = sim * 3
-      sim = sim * 3
-      sim = sim * 3
-      sim = sim * 5
-      sim = sim * 5
-    end
-    print(sim)
-]])
-
+cthread.new("ping", [=[
+  cthread.new("pong", [[ print(math.pi)
+  print(math.huge)
+  print(math.sin(21))]])
+  cthread.push("pong")
+  cthread.start()
+]=])
 cthread.push("ping")
 cthread.start()
 end)
-print("Time Took : " .. res.cpu)
-print("Memory Took : " .. collectgarbage("count"))
-return cthread
+print(res.cpu)
+print(collectgarbage("count"))
