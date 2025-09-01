@@ -8,11 +8,10 @@ local function coro(func)
     coroutine.yield()
   end
 end
-
 local cthread = {}
 cthread.list = {}
 cthread.queue = {}
-
+cthread.sleeping = {}
 local function _trim(s)
   return (s:gsub("^%s+", ""):gsub("%s+$", ""))
 end
@@ -106,7 +105,158 @@ local function inject_yields(code)
 end
 
 cthread.env = {
-print = coro(print)
+    assert          = coro(assert),
+    collectgarbage  = coro(collectgarbage),
+    dofile          = coro(dofile),
+    error           = coro(error),
+    _G              = _G,
+    getmetatable    = coro(getmetatable),
+    ipairs          = coro(ipairs),
+    load            = coro(load),
+    loadfile        = coro(loadfile),
+    next            = coro(next),
+    pairs           = coro(pairs),
+    pcall           = coro(pcall),
+    print           = coro(print),
+    rawequal        = coro(rawequal),
+    rawget          = coro(rawget),
+    rawlen          = coro(rawlen),
+    rawset          = coro(rawset),
+    require         = coro(require),
+    select          = coro(select),
+    setmetatable    = coro(setmetatable),
+    tonumber        = coro(tonumber),
+    tostring        = coro(tostring),
+    type            = coro(type),
+    xpcall          = coro(xpcall),
+    table = {
+        concat  = coro(table.concat),
+        insert  = coro(table.insert),
+        move    = coro(table.move),
+        pack    = coro(table.pack),
+        remove  = coro(table.remove),
+        sort    = coro(table.sort),
+        unpack  = coro(table.unpack),
+    },
+    math = {
+        abs       = coro(math.abs),
+        acos      = coro(math.acos),
+        asin      = coro(math.asin),
+        atan      = coro(math.atan),
+        ceil      = coro(math.ceil),
+        cos       = coro(math.cos),
+        deg       = coro(math.deg),
+        exp       = coro(math.exp),
+        floor     = coro(math.floor),
+        fmod      = coro(math.fmod),
+        huge      = math.huge,
+        log       = coro(math.log),
+        max       = coro(math.max),
+        min       = coro(math.min),
+        modf      = coro(math.modf),
+        pi        = math.pi,
+        rad       = coro(math.rad),
+        random    = coro(math.random),
+        randomseed= coro(math.randomseed),
+        sin       = coro(math.sin),
+        sqrt      = coro(math.sqrt),
+        tan       = coro(math.tan),
+        tointeger = coro(math.tointeger),
+        type      = coro(math.type),
+        ult       = coro(math.ult),
+    },
+    string = {
+        byte     = coro(string.byte),
+        char     = coro(string.char),
+        dump     = coro(string.dump),
+        find     = coro(string.find),
+        format   = coro(string.format),
+        gmatch   = coro(string.gmatch),
+        gsub     = coro(string.gsub),
+        len      = coro(string.len),
+        lower    = coro(string.lower),
+        match    = coro(string.match),
+        pack     = coro(string.pack),
+        packsize = coro(string.packsize),
+        rep      = coro(string.rep),
+        reverse  = coro(string.reverse),
+        sub      = coro(string.sub),
+        unpack   = coro(string.unpack),
+        upper    = coro(string.upper),
+    },
+    utf8 = {
+        char        = coro(utf8.char),
+        charpattern = utf8.charpattern,
+        codepoint   = coro(utf8.codepoint),
+        codes       = coro(utf8.codes),
+        len         = coro(utf8.len),
+        offset      = coro(utf8.offset),
+    },
+    coroutine = {
+        close       = coro(coroutine.close),
+        create      = coro(coroutine.create),
+        isyieldable = coro(coroutine.isyieldable),
+        resume      = coro(coroutine.resume),
+        running     = coro(coroutine.running),
+        status      = coro(coroutine.status),
+        wrap        = coro(coroutine.wrap),
+        yield       = coro(coroutine.yield),
+    },
+    debug = {
+        debug        = coro(debug.debug),
+        gethook      = coro(debug.gethook),
+        getinfo      = coro(debug.getinfo),
+        getlocal     = coro(debug.getlocal),
+        getmetatable = coro(debug.getmetatable),
+        getregistry  = coro(debug.getregistry),
+        getupvalue   = coro(debug.getupvalue),
+        getuservalue = coro(debug.getuservalue),
+        sethook      = coro(debug.sethook),
+        setlocal     = coro(debug.setlocal),
+        setmetatable = coro(debug.setmetatable),
+        setupvalue   = coro(debug.setupvalue),
+        setuservalue = coro(debug.setuservalue),
+        traceback    = coro(debug.traceback),
+        upvalueid    = coro(debug.upvalueid),
+        upvaluejoin  = coro(debug.upvaluejoin),
+    },
+
+    io = {
+        close    = coro(io.close),
+        flush    = coro(io.flush),
+        input    = coro(io.input),
+        lines    = coro(io.lines),
+        open     = coro(io.open),
+        output   = coro(io.output),
+        popen    = coro(io.popen),
+        read     = coro(io.read),
+        tmpfile  = coro(io.tmpfile),
+        type     = coro(io.type),
+        write    = coro(io.write),
+    },
+    os = {
+        clock     = coro(os.clock),
+        date      = coro(os.date),
+        difftime  = coro(os.difftime),
+        execute   = coro(os.execute),
+        exit      = coro(os.exit),
+        getenv    = coro(os.getenv),
+        remove    = coro(os.remove),
+        rename    = coro(os.rename),
+        setlocale = coro(os.setlocale),
+        time      = coro(os.time),
+        tmpname   = coro(os.tmpname),
+    },
+    package = {
+        config      = package.config,
+        cpath       = package.cpath,
+        loaded      = package.loaded,
+        loadlib     = coro(package.loadlib),
+        path        = package.path,
+        preload     = package.preload,
+        searchers   = package.searchers,
+        searchpath  = coro(package.searchpath),
+    },
   cthread = {
     new = coro(cthread.new),
     push = coro(cthread.push),
@@ -118,9 +268,13 @@ print = coro(print)
       return coroutine.yield()
     end
     local target = os.clock() + t
-    repeat
-      coroutine.yield()
-    until os.clock() >= target
+    local current = coroutine.running()
+    for name, co in pairs(cthread.list) do
+      if co == current then
+        cthread.sleeping[name] = target
+        return coroutine.yield()
+      end
+    end
   end)
 }
 
@@ -136,6 +290,13 @@ function cthread.push(name)
 end
 
 function cthread.tick()
+  local now = os.clock()
+  for name, wake in pairs(cthread.sleeping) do
+    if now >= wake then
+      cthread.queue[#cthread.queue+1] = name
+      cthread.sleeping[name] = nil
+    end
+  end
   local q = cthread.queue
   cthread.queue = {}
   for i = 1, #q do
@@ -152,6 +313,7 @@ function cthread.tick()
     q[i] = nil
   end
 end
+
 
 function cthread.start()
   while #cthread.queue > 0 do
@@ -200,7 +362,6 @@ cthread.env.collect = function(from, key)
   end
   return nil
 end
-
 local function cthread.used(func, ...)
   collectgarbage("collect")
   local start = os.clock()
@@ -209,6 +370,23 @@ local function cthread.used(func, ...)
   result.cpu = tonumber(("%.3f"):format(finish - start)) 
   return result
 end
-print(res.cpu)
-print(collectgarbage("count"))
+-- Built-In Example, Can be removed
+local res = used(function()
+cthread.new("ping", [[
+    local sim = 234567890
+    for i=1,10e3 do 
+      sim = sim * 3
+      sim = sim * 3
+      sim = sim * 3
+      sim = sim * 5
+      sim = sim * 5
+    end
+    print(sim)
+]])
+
+cthread.push("ping")
+cthread.start()
+end)
+print("Time Took : " .. res.cpu)
+print("Memory Took : " .. collectgarbage("count"))
 return cthread
